@@ -895,169 +895,6 @@ function Library:CreateWindow(Options)
 
 	buildThemeGUI()
 
-	function Window:CreateConfigSystem()
-		local configDivider = Instance.new("Frame")
-		configDivider.Name = "ConfigDivider"
-		configDivider.Size = UDim2.new(1, 0, 0, 1)
-		configDivider.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-		configDivider.BorderSizePixel = 0
-		configDivider.Parent = settingsList
-
-		buildConfigManager(settingsList)
-	end
-
-
-	local divider = Instance.new("Frame")
-	divider.Name = "Divider"
-	divider.Size = UDim2.new(1, 0, 0, 1)
-	divider.Position = UDim2.new(0, 0, 0, 42)
-	divider.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
-	divider.BorderSizePixel = 0
-	divider.Parent = topbar
-
-	local navBar = Instance.new("ScrollingFrame")
-	navBar.Name = "NavContainer"
-	navBar.Size = UDim2.new(1, -25, 0, 38)
-	navBar.Position = UDim2.new(0, 8, 0, 42)
-	navBar.BackgroundTransparency = 1
-	navBar.BorderSizePixel = 0
-	navBar.CanvasSize = UDim2.new(0, 0, 0, 0)
-	navBar.AutomaticCanvasSize = Enum.AutomaticSize.X
-	navBar.ScrollBarThickness = 0
-	navBar.ScrollingDirection = Enum.ScrollingDirection.X
-	navBar.Parent = topbar
-
-	local navLayout = Instance.new("UIListLayout")
-	navLayout.FillDirection = Enum.FillDirection.Horizontal
-	navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-	navLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	navLayout.Padding = UDim.new(0, 6)
-	navLayout.Parent = navBar
-
-	local arrowNext = Instance.new("ImageButton")
-	arrowNext.Name = "ArrowNext"
-	arrowNext.Size = UDim2.new(0, 14, 0, 14)
-	arrowNext.Position = UDim2.new(1, -16, 0, 54)
-	arrowNext.BackgroundTransparency = 1
-	ApplyIcon(arrowNext, "chevron-right")
-	arrowNext.ImageColor3 = Color3.fromRGB(110, 110, 125)
-	arrowNext.Parent = topbar
-
-	arrowNext.MouseButton1Click:Connect(function()
-		navBar.CanvasPosition = Vector2.new(navBar.CanvasPosition.X + 80, 0)
-	end)
-
-	local contentArea = Instance.new("Frame")
-	contentArea.Name = "ContentArea"
-	contentArea.Size = UDim2.new(1, -16, 1, -118)
-	contentArea.Position = UDim2.new(0, 8, 0, 86)
-	contentArea.BackgroundTransparency = 1
-	contentArea.Parent = mainFrame
-	Window.ContentArea = contentArea
-
-	local footer = Instance.new("Frame")
-	footer.Name = "Footer"
-	footer.Size = UDim2.new(1, 0, 0, 24)
-	footer.Position = UDim2.new(0, 0, 1, -24)
-	footer.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
-	footer.BorderSizePixel = 0
-	footer.Parent = mainFrame
-
-	local footerCorner = Instance.new("UICorner")
-	footerCorner.CornerRadius = UDim.new(0, 8)
-	footerCorner.Parent = footer
-
-	local function switchTab(tabName)
-		Window.ActiveTabName = tabName
-		for name, data in pairs(Window.TabFrames) do
-			data.Page.Visible = (name == tabName)
-		end
-
-		for name, btnObj in pairs(tabButtons) do
-			local isActive = (name == tabName)
-			btnObj.Btn.BackgroundColor3 = isActive and Color3.fromRGB(28, 24, 22) or Color3.fromRGB(0, 0, 0)
-			btnObj.Btn.BackgroundTransparency = isActive and 0 or 1
-			btnObj.Icon.ImageColor3 = isActive and Window.Themes[Window.ActiveTheme].Accent or Color3.fromRGB(110, 110, 125)
-			btnObj.Txt.TextColor3 = isActive and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(110, 110, 125)
-			btnObj.Underline.Visible = isActive
-		end
-	end
-
-	Window.SwitchTab = switchTab
-
-	local searchItems = Window.SearchItems
-
-	local function updateSearchDropdown()
-		local query = string.lower(searchBox.Text)
-		for _, child in ipairs(searchDropList:GetChildren()) do
-			if child:IsA("TextButton") then child:Destroy() end
-		end
-
-		if query == "" then
-			searchDropdown.Visible = false
-			searchDropdown.Size = UDim2.new(0, 160, 0, 0)
-			return
-		end
-
-		local count = 0
-		for _, item in ipairs(searchItems) do
-			if string.find(string.lower(item.Name), query) then
-				count = count + 1
-				local resBtn = Instance.new("TextButton")
-				resBtn.Name = "SearchResult"
-				resBtn.Size = UDim2.new(1, 0, 0, 22)
-				resBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-				resBtn.BorderSizePixel = 0
-				resBtn.Text = "  " .. item.Name
-				resBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
-				resBtn.TextSize = 9
-				resBtn.Font = UI_FONT
-				resBtn.TextXAlignment = Enum.TextXAlignment.Left
-				resBtn.TextTruncate = Enum.TextTruncate.AtEnd
-				resBtn.ZIndex = 252
-				resBtn.Parent = searchDropList
-
-				local resCorner = Instance.new("UICorner")
-				resCorner.CornerRadius = UDim.new(0, 4)
-				resCorner.Parent = resBtn
-
-				resBtn.MouseEnter:Connect(function()
-					resBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 48)
-				end)
-				resBtn.MouseLeave:Connect(function()
-					resBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-				end)
-
-				resBtn.MouseButton1Click:Connect(function()
-					if item.Tab then
-						switchTab(item.Tab)
-					end
-					searchBox.Text = ""
-					searchDropdown.Visible = false
-
-					if item.Frame then
-						local origTrans = item.Frame.BackgroundTransparency
-						item.Frame.BackgroundTransparency = 0.5
-						item.Frame.BackgroundColor3 = Window.Themes[Window.ActiveTheme].Accent
-						task.delay(0.5, function()
-							item.Frame.BackgroundTransparency = origTrans
-						end)
-					end
-				end)
-			end
-		end
-
-		if count > 0 then
-			searchDropdown.Visible = true
-			searchDropdown.Size = UDim2.new(0, 160, 0, math.min(count, 5) * 26 + 8)
-		else
-			searchDropdown.Visible = false
-			searchDropdown.Size = UDim2.new(0, 160, 0, 0)
-		end
-	end
-
-	searchBox:GetPropertyChangedSignal("Text"):Connect(updateSearchDropdown)
-
 	local function buildConfigManager(parent)
 			local nameRow = Instance.new("Frame")
 			nameRow.Name = "ConfigNameRow"
@@ -1435,6 +1272,171 @@ function Library:CreateWindow(Options)
 			rebuildCfgDropdown()
 			loadAutoloadIfExists()
 	end
+
+	function Window:CreateConfigSystem()
+		local configDivider = Instance.new("Frame")
+		configDivider.Name = "ConfigDivider"
+		configDivider.Size = UDim2.new(1, 0, 0, 1)
+		configDivider.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+		configDivider.BorderSizePixel = 0
+		configDivider.Parent = settingsList
+
+		buildConfigManager(settingsList)
+	end
+
+
+	local divider = Instance.new("Frame")
+	divider.Name = "Divider"
+	divider.Size = UDim2.new(1, 0, 0, 1)
+	divider.Position = UDim2.new(0, 0, 0, 42)
+	divider.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+	divider.BorderSizePixel = 0
+	divider.Parent = topbar
+
+	local navBar = Instance.new("ScrollingFrame")
+	navBar.Name = "NavContainer"
+	navBar.Size = UDim2.new(1, -25, 0, 38)
+	navBar.Position = UDim2.new(0, 8, 0, 42)
+	navBar.BackgroundTransparency = 1
+	navBar.BorderSizePixel = 0
+	navBar.CanvasSize = UDim2.new(0, 0, 0, 0)
+	navBar.AutomaticCanvasSize = Enum.AutomaticSize.X
+	navBar.ScrollBarThickness = 0
+	navBar.ScrollingDirection = Enum.ScrollingDirection.X
+	navBar.Parent = topbar
+
+	local navLayout = Instance.new("UIListLayout")
+	navLayout.FillDirection = Enum.FillDirection.Horizontal
+	navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	navLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	navLayout.Padding = UDim.new(0, 6)
+	navLayout.Parent = navBar
+
+	local arrowNext = Instance.new("ImageButton")
+	arrowNext.Name = "ArrowNext"
+	arrowNext.Size = UDim2.new(0, 14, 0, 14)
+	arrowNext.Position = UDim2.new(1, -16, 0, 54)
+	arrowNext.BackgroundTransparency = 1
+	ApplyIcon(arrowNext, "chevron-right")
+	arrowNext.ImageColor3 = Color3.fromRGB(110, 110, 125)
+	arrowNext.Parent = topbar
+
+	arrowNext.MouseButton1Click:Connect(function()
+		navBar.CanvasPosition = Vector2.new(navBar.CanvasPosition.X + 80, 0)
+	end)
+
+	local contentArea = Instance.new("Frame")
+	contentArea.Name = "ContentArea"
+	contentArea.Size = UDim2.new(1, -16, 1, -118)
+	contentArea.Position = UDim2.new(0, 8, 0, 86)
+	contentArea.BackgroundTransparency = 1
+	contentArea.Parent = mainFrame
+	Window.ContentArea = contentArea
+
+	local footer = Instance.new("Frame")
+	footer.Name = "Footer"
+	footer.Size = UDim2.new(1, 0, 0, 24)
+	footer.Position = UDim2.new(0, 0, 1, -24)
+	footer.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
+	footer.BorderSizePixel = 0
+	footer.Parent = mainFrame
+
+	local footerCorner = Instance.new("UICorner")
+	footerCorner.CornerRadius = UDim.new(0, 8)
+	footerCorner.Parent = footer
+
+	local function switchTab(tabName)
+		Window.ActiveTabName = tabName
+		for name, data in pairs(Window.TabFrames) do
+			data.Page.Visible = (name == tabName)
+		end
+
+		for name, btnObj in pairs(tabButtons) do
+			local isActive = (name == tabName)
+			btnObj.Btn.BackgroundColor3 = isActive and Color3.fromRGB(28, 24, 22) or Color3.fromRGB(0, 0, 0)
+			btnObj.Btn.BackgroundTransparency = isActive and 0 or 1
+			btnObj.Icon.ImageColor3 = isActive and Window.Themes[Window.ActiveTheme].Accent or Color3.fromRGB(110, 110, 125)
+			btnObj.Txt.TextColor3 = isActive and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(110, 110, 125)
+			btnObj.Underline.Visible = isActive
+		end
+	end
+
+	Window.SwitchTab = switchTab
+
+	local searchItems = Window.SearchItems
+
+	local function updateSearchDropdown()
+		local query = string.lower(searchBox.Text)
+		for _, child in ipairs(searchDropList:GetChildren()) do
+			if child:IsA("TextButton") then child:Destroy() end
+		end
+
+		if query == "" then
+			searchDropdown.Visible = false
+			searchDropdown.Size = UDim2.new(0, 160, 0, 0)
+			return
+		end
+
+		local count = 0
+		for _, item in ipairs(searchItems) do
+			if string.find(string.lower(item.Name), query) then
+				count = count + 1
+				local resBtn = Instance.new("TextButton")
+				resBtn.Name = "SearchResult"
+				resBtn.Size = UDim2.new(1, 0, 0, 22)
+				resBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+				resBtn.BorderSizePixel = 0
+				resBtn.Text = "  " .. item.Name
+				resBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
+				resBtn.TextSize = 9
+				resBtn.Font = UI_FONT
+				resBtn.TextXAlignment = Enum.TextXAlignment.Left
+				resBtn.TextTruncate = Enum.TextTruncate.AtEnd
+				resBtn.ZIndex = 252
+				resBtn.Parent = searchDropList
+
+				local resCorner = Instance.new("UICorner")
+				resCorner.CornerRadius = UDim.new(0, 4)
+				resCorner.Parent = resBtn
+
+				resBtn.MouseEnter:Connect(function()
+					resBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 48)
+				end)
+				resBtn.MouseLeave:Connect(function()
+					resBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+				end)
+
+				resBtn.MouseButton1Click:Connect(function()
+					if item.Tab then
+						switchTab(item.Tab)
+					end
+					searchBox.Text = ""
+					searchDropdown.Visible = false
+
+					if item.Frame then
+						local origTrans = item.Frame.BackgroundTransparency
+						item.Frame.BackgroundTransparency = 0.5
+						item.Frame.BackgroundColor3 = Window.Themes[Window.ActiveTheme].Accent
+						task.delay(0.5, function()
+							item.Frame.BackgroundTransparency = origTrans
+						end)
+					end
+				end)
+			end
+		end
+
+		if count > 0 then
+			searchDropdown.Visible = true
+			searchDropdown.Size = UDim2.new(0, 160, 0, math.min(count, 5) * 26 + 8)
+		else
+			searchDropdown.Visible = false
+			searchDropdown.Size = UDim2.new(0, 160, 0, 0)
+		end
+	end
+
+	searchBox:GetPropertyChangedSignal("Text"):Connect(updateSearchDropdown)
+
+
 
 	function Window:CreateTab(tabName, icon)
 		local page = Instance.new("Frame")
