@@ -1273,7 +1273,12 @@ function Library:CreateWindow(Options)
 			loadAutoloadIfExists()
 	end
 
+	Window.ConfigSystemBuilt = false
+
 	function Window:CreateConfigSystem()
+		if Window.ConfigSystemBuilt then return end
+		Window.ConfigSystemBuilt = true
+
 		local configDivider = Instance.new("Frame")
 		configDivider.Name = "ConfigDivider"
 		configDivider.Size = UDim2.new(1, 0, 0, 1)
@@ -1283,6 +1288,8 @@ function Library:CreateWindow(Options)
 
 		buildConfigManager(settingsList)
 	end
+
+	Window:CreateConfigSystem()
 
 
 	local divider = Instance.new("Frame")
@@ -1544,6 +1551,16 @@ function Library:CreateWindow(Options)
 		local uGrad = Instance.new("UIGradient")
 		uGrad.Name = "Grad"
 		uGrad.Rotation = 0
+		local initialAccent = Window.Themes[Window.ActiveTheme].Accent
+		local initialDarker = Color3.new(
+			math.clamp(initialAccent.R * 0.4, 0, 1),
+			math.clamp(initialAccent.G * 0.4, 0, 1),
+			math.clamp(initialAccent.B * 0.4, 0, 1)
+		)
+		uGrad.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, initialAccent),
+			ColorSequenceKeypoint.new(1, initialDarker)
+		})
 		uGrad.Parent = underline
 		table.insert(dynamicThemeElements, {Object = uGrad, Type = "Gradient"})
 
@@ -2683,6 +2700,24 @@ function Library:CreateWindow(Options)
 				local gInput = makeField(0.2, "G")
 				local bInput = makeField(0.2, "B")
 
+				local confirmBtn = Instance.new("TextButton")
+				confirmBtn.Name = "ConfirmBtn"
+				confirmBtn.Size = UDim2.new(1, 0, 0, 22)
+				confirmBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+				confirmBtn.BorderSizePixel = 0
+				confirmBtn.Text = "Confirm"
+				confirmBtn.TextColor3 = Color3.fromRGB(245, 170, 50)
+				confirmBtn.TextSize = 9
+				confirmBtn.Font = UI_FONT
+				confirmBtn.ZIndex = 31
+				confirmBtn.Parent = popup
+
+				local confirmCorner = Instance.new("UICorner")
+				confirmCorner.CornerRadius = UDim.new(0, 4)
+				confirmCorner.Parent = confirmBtn
+
+				table.insert(dynamicThemeElements, {Object = confirmBtn, Type = "Accent"})
+
 				local hue, sat, val = defaultColor:ToHSV()
 				local updatingFields = false
 
@@ -2704,11 +2739,10 @@ function Library:CreateWindow(Options)
 					updatingFields = false
 				end
 
-				local function updateColor(silent)
+				local function updateColor()
 					local color = Color3.fromHSV(hue, sat, val)
 					swatchBtn.BackgroundColor3 = color
 					refreshFields(color)
-					if not silent and callback then callback(color) end
 				end
 
 				refreshVisuals()
@@ -2803,8 +2837,8 @@ function Library:CreateWindow(Options)
 					local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 					if isOpen then
 						popup.Visible = true
-						TweenService:Create(popup, tweenInfo, {Size = UDim2.new(0, 220, 0, 210)}):Play()
-						row.Size = UDim2.new(1, 0, 0, 236)
+						TweenService:Create(popup, tweenInfo, {Size = UDim2.new(0, 220, 0, 240)}):Play()
+						row.Size = UDim2.new(1, 0, 0, 266)
 					else
 						local tw = TweenService:Create(popup, tweenInfo, {Size = UDim2.new(0, 220, 0, 0)})
 						tw:Play()
@@ -2819,11 +2853,18 @@ function Library:CreateWindow(Options)
 
 				swatchBtn.MouseButton1Click:Connect(togglePopup)
 
+				confirmBtn.MouseButton1Click:Connect(function()
+					local color = Color3.fromHSV(hue, sat, val)
+					if callback then callback(color) end
+					showNotification(text .. " confirmed")
+					if isOpen then togglePopup() end
+				end)
+
 				local element = {
 					Set = function(v)
 						hue, sat, val = v:ToHSV()
 						refreshVisuals()
-						updateColor(true)
+						updateColor()
 					end,
 					Get = function() return swatchBtn.BackgroundColor3 end
 				}
